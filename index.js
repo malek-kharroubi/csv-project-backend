@@ -3,9 +3,11 @@ const multer = require('multer');
 const fs = require('fs');
 const fastcsv = require('fast-csv');
 const AdmZip = require('adm-zip');
+const cors = require('cors');
 
 const app = express();
 const upload = multer({ dest: 'uploads/' });
+app.use(cors());
 
 app.post('/upload', upload.single('file'), (req, res) => {
   const filePath = req.file.path;
@@ -56,7 +58,13 @@ app.post('/upload', upload.single('file'), (req, res) => {
           if (err) {
             console.error('Error downloading file:', err);
           }
+          // free up memory.
+          fs.unlinkSync(filePath);
+          fs.unlinkSync(malePath);
+          fs.unlinkSync(femalePath);
+          fs.unlinkSync(zipPath);
         });
+
       } catch (error) {
         console.error('Error processing CSV:', error);
         res.status(500).send({ error: 'An error occurred while processing the CSV file.' });
